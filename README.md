@@ -34,4 +34,56 @@ The reference chromosome was selected because the BRCA1 gene is located on chrom
 Reference file used in the analysis:
 ```text
 genome.fa
-###Workflow
+
+**Work flow**
+Raw FASTQ Reads
+       |
+       v
+Quality Control
+     FastQC
+       |
+       v
+Read Trimming
+      fastp
+       |
+       v
+Post-trimming Quality Control
+     FastQC
+       |
+       v
+Reference Genome
+     hg38/chr17
+       |
+       v
+Reference Indexing
+       BWA
+       |
+       v
+Read Alignment
+       BWA
+       |
+       v
+BAM Sorting
+     SAMtools
+       |
+       v
+Duplicate Removal
+     SAMtools
+       |
+       v
+Read Group Assignment
+      Picard
+       |
+       v
+Variant Calling
+GATK HaplotypeCaller
+       |
+       v
+      VCF
+       |
+       v
+Variant Annotation
+       VEP
+       |
+       v
+Functional Consequences

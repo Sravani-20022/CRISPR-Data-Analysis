@@ -1,0 +1,23 @@
+# Step 1: Quality control of raw reads
+fastqc SRR21763320_1.fastq.gz SRR21763320_2.fastq.gz
+# Step 2: Read trimming and quality filtering
+fastp -i SRR21763320_1.fastq.gz -o trim_SRR21763320_1.fastq.gz -I SRR21763320_2.fastq.gz -O trim_SRR21763320_2.fastq.gz -5 -3 -q 30 --adapter_fasta adapter.fasta -h fastp.html -j fastp.json
+# Step 3: Quality control after trimming
+fastqc trim_SRR21763320_1.fastq.gz trim_SRR21763320_2.fastq.gz
+# Step 4: Index reference genome
+bwa index -a bwtsw genome.fa
+# Step 5: Align reads to reference genome
+bwa mem -t 4 genome.fa trim_SRR21763320_1.fastq.gz trim_SRR21763320_2.fastq.gz > bwa_SRR21763320.bam
+# Step 6: Sort BAM file
+samtools sort -o sorted_SRR21763320.bam bwa_SRR21763320.bam
+# Step 7: Remove duplicate reads
+samtools rmdup -sS sorted_SRR21763320.bam rmdup_SRR21763320.bam
+# Step 8: Create sequence dictionary
+picard CreateSequenceDictionary R=genome.fa O=genome.dict
+# Step 9: Add or replace read groups
+picard AddOrReplaceReadGroups I=rmdup_SRR21763320.bam O=picard.output.bam RGLB=lib1 RGPL=ILLUMINA RGPU=unit1 RGSM=20 SORT_ORDER=Coordinate CREATE_INDEX=true VALIDATION_STRINGENCY=LENIENT
+# Step 10: Index reference genome
+samtools faidx genome.fa
+# Step 11: Variant calling using GATK HaplotypeCaller
+gatk HaplotypeCaller -R genome.fa -I picard.output.bam -O GATK_output.vcf
+echo "CRISPR/Cas9 analysis completed."
